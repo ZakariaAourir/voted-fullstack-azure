@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import List
+import os
 
 
 class Settings(BaseSettings):
@@ -10,7 +11,9 @@ class Settings(BaseSettings):
     allowed_origins: List[str] = ["http://localhost:3000", "http://localhost:5173"]
     
     class Config:
-        env_file = None
+        # Only load .env if it exists
+        env_file = ".env" if os.path.exists(".env") else None
+        case_sensitive = False
 
 
 settings = Settings()

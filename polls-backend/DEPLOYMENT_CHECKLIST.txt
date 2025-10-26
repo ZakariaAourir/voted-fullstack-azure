@@ -1,0 +1,146 @@
+═══════════════════════════════════════════════════════════════
+  AZURE BACKEND DEPLOYMENT CHECKLIST - Print & Follow!
+═══════════════════════════════════════════════════════════════
+
+📋 STEP 1: CREATE AZURE APP SERVICE
+═══════════════════════════════════════════════════════════════
+[ ] Go to portal.azure.com
+[ ] Click "Create a resource" → "Web App"
+[ ] Name: app-polls-api-dev (write yours: ___________________)
+[ ] Publish: CODE (not Docker!)
+[ ] Runtime: Python 3.12
+[ ] OS: Linux
+[ ] Region: Same as your database
+[ ] Plan: Create new "asp-polls-dev" with B1 tier
+[ ] Click "Review + Create" → "Create"
+[ ] Wait for deployment (1-2 minutes)
+
+📋 STEP 2: ENABLE WEBSOCKETS
+═══════════════════════════════════════════════════════════════
+[ ] Open your App Service
+[ ] Go to: Configuration → General settings
+[ ] Set "Web sockets" = ON
+[ ] Click Save → Continue
+
+📋 STEP 3: ADD ENVIRONMENT VARIABLES
+═══════════════════════════════════════════════════════════════
+[ ] Still in Configuration → Application settings tab
+[ ] Add these settings (click "+ New application setting"):
+
+    [ ] DATABASE_URL = postgresql+psycopg2://...
+        (your Azure PostgreSQL connection string)
+    
+    [ ] JWT_SECRET = (generate with command below)
+        python -c "import secrets; print(secrets.token_urlsafe(32))"
+    
+    [ ] JWT_EXPIRES_MIN = 15
+    
+    [ ] REFRESH_EXPIRES_DAYS = 7
+    
+    [ ] ALLOWED_ORIGINS = http://localhost:5173
+        (add your frontend URL later, comma-separated)
+    
+    [ ] SCM_DO_BUILD_DURING_DEPLOYMENT = true
+    
+    [ ] PYTHON_VERSION = 3.12
+
+[ ] Click Save → Continue
+
+📋 STEP 4: SET STARTUP COMMAND
+═══════════════════════════════════════════════════════════════
+[ ] Configuration → General settings → Startup Command
+[ ] Paste this:
+    gunicorn -k uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000 app.main:app
+[ ] Click Save → Continue
+
+📋 STEP 5: DOWNLOAD PUBLISH PROFILE
+═══════════════════════════════════════════════════════════════
+[ ] App Service Overview page
+[ ] Click "Get publish profile" button
+[ ] Save the .PublishSettings file
+[ ] Keep this file - you'll need it for GitHub
+
+📋 STEP 6: SETUP GITHUB SECRETS
+═══════════════════════════════════════════════════════════════
+[ ] Go to: github.com/YOUR_USERNAME/voted
+[ ] Settings → Secrets and variables → Actions
+[ ] Click "New repository secret"
+[ ] Name: AZUREAPPSERVICE_PUBLISHPROFILE_BACKEND
+[ ] Value: Paste entire contents of .PublishSettings file
+[ ] Click "Add secret"
+
+📋 STEP 7: VERIFY GITHUB WORKFLOW FILE
+═══════════════════════════════════════════════════════════════
+[ ] Check file exists: .github/workflows/deploy-backend.yml
+[ ] Open the file
+[ ] Change "app-polls-api-dev" to YOUR App Service name
+[ ] Save the file
+
+📋 STEP 8: COMMIT AND PUSH
+═══════════════════════════════════════════════════════════════
+[ ] Run these commands:
+    git add .
+    git commit -m "Setup Azure deployment"
+    git push origin main
+
+[ ] Go to GitHub → Actions tab
+[ ] Watch the deployment workflow run
+[ ] Wait for green checkmark (5-10 minutes)
+
+📋 STEP 9: RUN DATABASE MIGRATIONS
+═══════════════════════════════════════════════════════════════
+[ ] App Service → SSH (in left menu)
+[ ] Wait for SSH to connect
+[ ] Run: cd /home/site/wwwroot
+[ ] Run: python -m alembic upgrade head
+[ ] Should see: "Running upgrade -> 001, Initial migration"
+[ ] Type: exit
+
+📋 STEP 10: TEST YOUR DEPLOYMENT
+═══════════════════════════════════════════════════════════════
+[ ] Test Health Check:
+    Open: https://YOUR-APP-NAME.azurewebsites.net/health
+    Should see: {"status": "healthy"}
+
+[ ] Test API Docs:
+    Open: https://YOUR-APP-NAME.azurewebsites.net/docs
+    Should see: Swagger UI with your endpoints
+
+[ ] Test Registration:
+    Use Swagger UI → POST /auth/register
+    Or use curl/PowerShell to test
+
+📋 STEP 11: ENABLE MONITORING (OPTIONAL)
+═══════════════════════════════════════════════════════════════
+[ ] App Service → Application Insights
+[ ] Click "Turn on Application Insights"
+[ ] Create new or select existing
+[ ] Click Apply
+
+═══════════════════════════════════════════════════════════════
+✅ DEPLOYMENT COMPLETE!
+═══════════════════════════════════════════════════════════════
+
+Your backend API is now live at:
+https://YOUR-APP-NAME.azurewebsites.net
+
+Next steps:
+- Update frontend to use this URL
+- Deploy frontend to Azure Static Web Apps
+- Update ALLOWED_ORIGINS with frontend URL
+
+═══════════════════════════════════════════════════════════════
+TROUBLESHOOTING COMMANDS
+═══════════════════════════════════════════════════════════════
+
+View logs:
+  az webapp log tail --name app-polls-api-dev --resource-group rg-polls-dev
+
+Restart app:
+  az webapp restart --name app-polls-api-dev --resource-group rg-polls-dev
+
+Update setting:
+  az webapp config appsettings set --name app-polls-api-dev --resource-group rg-polls-dev --settings KEY=VALUE
+
+═══════════════════════════════════════════════════════════════
+
