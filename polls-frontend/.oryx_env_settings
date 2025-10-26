@@ -1,2 +1,0 @@
-BUILD_COMMAND="npm run build:prod"
-
