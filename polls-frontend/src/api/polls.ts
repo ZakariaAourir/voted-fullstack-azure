@@ -4,7 +4,6 @@ import {
   Poll, 
   CreatePollRequest, 
   VoteRequest, 
-  PollsResponse, 
   PollsQuery 
 } from '../types';
 
