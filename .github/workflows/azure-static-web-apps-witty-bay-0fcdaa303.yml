@@ -46,16 +46,25 @@ jobs:
         run: |
           echo "=== Build Output ==="
           ls -la dist/
+          echo ""
           echo "=== Assets Folder ==="
           ls -la dist/assets/ || echo "No assets folder"
+          echo ""
+          echo "=== dist/index.html (first 20 lines) ==="
+          head -n 20 dist/index.html
+          echo ""
+          echo "=== Checking for .ts/.tsx files in dist (should be empty) ==="
+          find dist/ -name "*.ts" -o -name "*.tsx" || echo "No TypeScript files found (GOOD!)"
+          echo ""
           echo "=== Config Files ==="
-          ls -la dist/*.json || echo "No JSON config files"
+          ls -la dist/*.json dist/*.config 2>/dev/null || echo "No config files yet"
       
-      - name: Copy config files to dist
+      - name: Verify config files are in dist
         run: |
-          cp staticwebapp.config.json polls-frontend/dist/ || echo "Root config not found"
-          cp polls-frontend/staticwebapp.config.json polls-frontend/dist/ || echo "App config not found"
-          cp polls-frontend/mime-types.json polls-frontend/dist/ || echo "mime-types not found"
+          echo "=== Config files in dist (from public folder) ==="
+          ls -la polls-frontend/dist/staticwebapp.config.json || echo "staticwebapp.config.json NOT in dist!"
+          ls -la polls-frontend/dist/web.config || echo "web.config NOT in dist!"
+          echo ""
           echo "=== Final dist contents ==="
           ls -la polls-frontend/dist/
       
