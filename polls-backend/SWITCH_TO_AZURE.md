@@ -96,3 +96,4 @@ Copy-Item .env.azure .env
 - Check firewall rules allow your IP
 - Make sure SSL mode is included: `?sslmode=require`
 
+

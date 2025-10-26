@@ -245,3 +245,4 @@ After backend is deployed:
 2. Deploy frontend to Azure Static Web Apps or App Service
 3. Update backend `ALLOWED_ORIGINS` with frontend URL
 
+
