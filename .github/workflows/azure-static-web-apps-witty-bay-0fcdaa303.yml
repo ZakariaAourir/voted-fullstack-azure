@@ -26,7 +26,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: polls-frontend/package-lock.json
       
@@ -41,10 +41,23 @@ jobs:
           VITE_WS_BASE: wss://api-polls-test-fwdwerddd6b6echt.francecentral-01.azurewebsites.net
         run: npm run build:prod
       
-      - name: Copy config files
+      - name: Verify build output
+        working-directory: polls-frontend
         run: |
-          cp staticwebapp.config.json polls-frontend/dist/
-          cp polls-frontend/staticwebapp.config.json polls-frontend/dist/ || true
+          echo "=== Build Output ==="
+          ls -la dist/
+          echo "=== Assets Folder ==="
+          ls -la dist/assets/ || echo "No assets folder"
+          echo "=== Config Files ==="
+          ls -la dist/*.json || echo "No JSON config files"
+      
+      - name: Copy config files to dist
+        run: |
+          cp staticwebapp.config.json polls-frontend/dist/ || echo "Root config not found"
+          cp polls-frontend/staticwebapp.config.json polls-frontend/dist/ || echo "App config not found"
+          cp polls-frontend/mime-types.json polls-frontend/dist/ || echo "mime-types not found"
+          echo "=== Final dist contents ==="
+          ls -la polls-frontend/dist/
       
       - name: Install OIDC Client from Core Package
         run: npm install @actions/core@1.6.0 @actions/http-client
@@ -64,8 +77,6 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WITTY_BAY_0FCDAA303 }}
           action: "upload"
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
           app_location: "polls-frontend" # App source code path
           api_location: "" # Api source code path - optional
           output_location: "dist" # Built app content directory - already built above
