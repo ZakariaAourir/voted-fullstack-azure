@@ -1,9 +1,9 @@
 name: Deploy Backend to Azure
 
-on:
+on: # trigger on [main] branch
   push:
     branches: [ main ]
-    paths: 
+    paths: # only triggers if polls-backend or yaml file changes
       - 'polls-backend/**'
       - '.github/workflows/deploy-backend.yml'
   workflow_dispatch:  # Allow manual trigger from GitHub UI
@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
+    - name: Checkout code # pull the repo backend so that it can later steps can access the polls-backend folder
       uses: actions/checkout@v4
     
-    - name: Set up Python
+    - name: Set up Python # this install python on the CI runner 
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
@@ -30,7 +30,7 @@ jobs:
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v3
       with:
-        app-name: 'api-polls-test'  # ⚠️ CHANGE THIS to your Azure App Service name
+        app-name: 'api-polls-test'
         publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BACKEND }}
         package: polls-backend
 
